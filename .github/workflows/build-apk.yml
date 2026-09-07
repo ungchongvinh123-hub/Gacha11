@@ -1,0 +1,57 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch: {}
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Giải nén project (zip đã upload)
+        run: |
+          unzip -o game-source-only.zip -d .
+          rm game-source-only.zip
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "npm"
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Cài đặt dependencies
+        run: npm install
+
+      - name: Bật export tĩnh cho Next.js
+        run: |
+          rm -rf src/app/api
+          sed -i 's/const nextConfig: NextConfig = {};/const nextConfig: NextConfig = { output: "export" };/' next.config.ts
+
+      - name: Build web (next build → out/)
+        run: npm run build
+
+      - name: Đồng bộ vào project Android (Capacitor)
+        run: npx cap sync android
+
+      - name: Cấp quyền chạy gradlew
+        run: chmod +x android/gradlew
+
+      - name: Build APK (debug)
+        working-directory: android
+        run: ./gradlew assembleDebug --stacktrace
+
+      - name: Tải APK lên (artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
