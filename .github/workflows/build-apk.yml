@@ -57,6 +57,17 @@ jobs:
           </layer-list>
           EOF
 
+      - name: Sửa icon app để không cần file ảnh bị thiếu
+        run: |
+          cat > android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+              <background android:drawable="@color/ic_launcher_background" />
+              <foreground android:drawable="@color/ic_launcher_background" />
+          </adaptive-icon>
+          EOF
+          cp android/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml android/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml
+
       - name: Cài Gradle thủ công (tránh bước kiểm tra jar cũ bị lỗi)
         run: |
           wget -q https://services.gradle.org/distributions/gradle-8.14.3-bin.zip
