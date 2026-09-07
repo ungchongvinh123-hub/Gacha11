@@ -69,31 +69,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-debug-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk      - name: Bật export tĩnh cho Next.js (bỏ API server nếu có)
-        run: |
-          rm -rf src/app/api
-          if grep -q "output:" next.config.ts; then
-            echo "next.config.ts đã có output, bỏ qua"
-          else
-            sed -i 's/const nextConfig: NextConfig = {};/const nextConfig: NextConfig = { output: "export" };/' next.config.ts
-          fi
-          cat next.config.ts
-
-      - name: Build web (next build → out/)
-        run: npm run build
-
-      - name: Đồng bộ vào project Android (Capacitor)
-        run: npx cap sync android
-
-      - name: Cấp quyền chạy gradlew
-        run: chmod +x android/gradlew
-
-      - name: Build APK (debug)
-        working-directory: android
-        run: ./gradlew assembleDebug --stacktrace
-
-      - name: Tải APK lên (artifact)
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
