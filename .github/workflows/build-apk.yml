@@ -12,10 +12,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Giải nén project (zip đã upload)
+      - name: Giải nén project (tự tìm file zip bất kỳ tên gì)
         run: |
-          unzip -o game-source-only.zip -d .
-          rm game-source-only.zip
+          ZIP_FILE=$(find . -maxdepth 1 -name "*.zip" | head -n 1)
+          echo "Đang giải nén: $ZIP_FILE"
+          unzip -o "$ZIP_FILE" -d .
+          rm -f "$ZIP_FILE"
+          ls -la
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -32,10 +35,15 @@ jobs:
       - name: Cài đặt dependencies
         run: npm install
 
-      - name: Bật export tĩnh cho Next.js
+      - name: Bật export tĩnh cho Next.js (bỏ API server nếu có)
         run: |
           rm -rf src/app/api
-          sed -i 's/const nextConfig: NextConfig = {};/const nextConfig: NextConfig = { output: "export" };/' next.config.ts
+          if grep -q "output:" next.config.ts; then
+            echo "next.config.ts đã có output, bỏ qua"
+          else
+            sed -i 's/const nextConfig: NextConfig = {};/const nextConfig: NextConfig = { output: "export" };/' next.config.ts
+          fi
+          cat next.config.ts
 
       - name: Build web (next build → out/)
         run: npm run build
