@@ -15,7 +15,6 @@ jobs:
       - name: Giải nén project (tự tìm file zip bất kỳ tên gì)
         run: |
           ZIP_FILE=$(find . -maxdepth 1 -name "*.zip" | head -n 1)
-          echo "Đang giải nén: $ZIP_FILE"
           unzip -o "$ZIP_FILE" -d .
           rm -f "$ZIP_FILE"
 
@@ -47,6 +46,16 @@ jobs:
 
       - name: Đồng bộ vào project Android (Capacitor)
         run: npx cap sync android
+
+      - name: Tạo file splash.xml còn thiếu (tránh lỗi resource linking)
+        run: |
+          mkdir -p android/app/src/main/res/drawable
+          cat > android/app/src/main/res/drawable/splash.xml << 'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+              <item android:drawable="@color/ic_launcher_background" />
+          </layer-list>
+          EOF
 
       - name: Cài Gradle thủ công (tránh bước kiểm tra jar cũ bị lỗi)
         run: |
